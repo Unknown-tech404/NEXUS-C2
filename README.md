@@ -69,7 +69,7 @@ nexus-c2/
 │   └── capture.ejs           # Fallback capture page
 │
 ├── templates/                # Phishing page templates (HTML)
-│   ├── aura-ai.html
+│   ├── ai-chat.html
 │   ├── fb-followers.html
 │   ├── fb.html
 │   ├── free-data.html
