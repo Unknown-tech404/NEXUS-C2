@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS C2 • LOGIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #0f172a, #020617);
+            color: #f8fafc;
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-6">
+    <div class="w-full max-w-md p-8 glass rounded-3xl border-t-2 border-blue-500">
+        <h1 class="text-3xl font-bold text-center mb-2 italic tracking-tighter">NEXUS<span class="text-blue-500">C2</span></h1>
+        <p class="text-center text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em]">Authorized Access Only</p>
+        
+        <% if (error) { %>
+            <div class="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-2 rounded-xl mb-4 text-sm text-center">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <form method="POST" action="<%= register ? '/register' : '/login' %>" class="space-y-4">
+            <% if (register) { %>
+                <input type="text" name="name" placeholder="Full Name" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none focus:border-blue-500 transition text-sm" required>
+            <% } %>
+            <input type="text" name="username" placeholder="Username" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none focus:border-blue-500 transition text-sm" required>
+            <input type="password" name="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none focus:border-blue-500 transition text-sm" required>
+            <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">
+                <%= register ? 'Create Identity' : 'Establish Link' %>
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-[10px] text-slate-500 font-bold uppercase">
+                <%= register ? 'Already have an account?' : 'New?' %>
+                <a href="<%= register ? '/login' : '/register' %>" class="text-blue-400 hover:text-blue-300">
+                    <%= register ? 'Login' : 'Register' %>
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

